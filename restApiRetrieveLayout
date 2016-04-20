@@ -1,0 +1,33 @@
+HttpRequest req = new HttpRequest();
+List<String> plValues = new List<String>();
+
+req.setHeader('Authorization', 'Bearer ' + UserInfo.getSessionID());
+req.setHeader('Content-Type', 'application/json');
+String endpoint = 'https://cs5.salesforce.com/services/data/v35.0/sobjects/Device_Request_MDT_AP__c/describe/layouts/01210000000c8Kb';
+
+req.setEndpoint(endpoint);
+req.setMethod('GET');
+
+HttpResponse res = new Http().send(req);
+String respBody = res.getBody();
+
+//system.debug('xxx:'+ res.getBody());\
+Map<String, Object> root = (Map<String, Object>)JSON.deserializeUntyped(respBody);
+List<Object> editLayoutSections = (List<Object>)root.get('editLayoutSections');
+for (Object editLayout : editLayoutSections) {
+  for(Object layoutRow : (List<Object>)((Map<String, Object>)editLayout).get('layoutRows')){
+  	for(Object layoutItem :(List<Object>)((Map<String, Object>)layoutRow).get('layoutItems')){
+  		if(!((Map<String, Object>)layoutItem).containsKey('layoutComponents')) continue;
+  		for(Object layoutComponent :(List<Object>)((Map<String, Object>)layoutItem).get('layoutComponents')){
+  			if(!((Map<String, Object>)layoutComponent).containsKey('details')) continue;
+  			if((String)((Map<String, Object>)layoutComponent).get('value') == 'Additional_Info_MDT_AP__c'){
+  				Object details = (Object)((Map<String, Object>)layoutComponent).get('details');
+  				for(Object picklistValue :(List<Object>)((Map<String, Object>)details).get('picklistValues')){
+  					plValues.add((String)((Map<String, Object>)picklistValue).get('value'));
+  				}
+  			}
+  		}
+  	}
+  }
+}
+system.debug('xxxxxxxxxxxxxx:'+plValues);
